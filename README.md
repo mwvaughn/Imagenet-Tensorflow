@@ -46,7 +46,7 @@ curl -H "Authorization: Bearer $token" -sk -X POST --data "description=Imagenet%
   "version": "0.01"
 }
 
-export actor=5d5c016e-f93b-11e6-815a-0242ac110005-059
+export actor=a64baab0-f9ed-11e6-b790-0242ac110005-059
 
 # Poll actor status
 
@@ -159,5 +159,4 @@ curl -H "Authorization: Bearer $token" -sk -X POST --data "message=classify" "$b
 }
 
 ```
-
 

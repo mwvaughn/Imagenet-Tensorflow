@@ -11,4 +11,3 @@ COPY runner.sh /root/runner.sh
 WORKDIR /root
 
 ENTRYPOINT /root/runner.sh
-
