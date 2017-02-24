@@ -2,6 +2,8 @@
 
 set -e
 
+env
+
 # Inherit specific key:value settings from ENV
 # These are passed into the container by Abaco
 # when an execution is requested. They are set
