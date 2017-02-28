@@ -2,7 +2,7 @@
 
 _[Abaco](https://github.com/TACC/abaco/) is a web service and distributed system that implements the actor model of concurrent computation whereby each actor registered in the system is associated with a Docker image. Actor containers are executed in response to messages posted to their inbox which itself is given by a URI exposed via abaco. In the process of executing the actor container, state, logs and execution statistics are collected._
 
-This repository provides a worked example of deploying a classifier based on Tensorflow as an Abaco container. 
+This repository provides a worked example of deploying a classifier based on Tensorflow as an Abaco container. The net result is that you will be able to send image URLs to a web service powered by this container and have them classified, all in a matter of a couple of seconds. This document assumes you have read the Abaco documentation and are familar with the concepts of actors, messages, and executions, as well as OAuth2 authentication mechanisms.
 
 Pre-requisites:
 
