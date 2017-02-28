@@ -58,7 +58,7 @@ When you read the `runner.py` source, keep an eye out for a few things:
 
 In order to isolate the initial debugging to a local environment without worrying about getting all the Abaco platform stuff working, we test using a simple [tester.sh](tester.sh) script that populates a `MSG` environment variable in a local version of our container and invokes the default entrypoint manually. Rather than hard-coding the environment into `tester.sh`, it is defined in [tester.env](tester.env). 
 
-```shell
+```
 MSG={'predictions': '6', 'data_name': 'barn.jpg', 'data_url': 'https://columbuszoo.org/Media/columbus-zoo-aquarium-2/my-barn---grahm-s-jones-columbus-zoo-and-aquarium.jpg'}
 ```
 
@@ -92,7 +92,7 @@ Now, test locally. Since `tester.env` points at a photo of a barn, the results s
 *barn.jpg*
 
 
-```shell
+```
 ./tester.sh 
 barn (score = 0.98347)
 church, church building (score = 0.00107)
@@ -109,7 +109,7 @@ Push the container to Docker Hub.
 
 Create an actor. You will do this by `POST`-ing to the `/actors` endpoint of the Abaco service
 
-```shell
+```
 . config.rc
 curl -sk -X GET -H "Authorization: Bearer $token" $base/actors/v2
 
