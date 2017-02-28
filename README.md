@@ -83,7 +83,9 @@ Now, test locally. Since `tester.env` points at a photo of a barn, the results s
 ![This is definitely a barn](https://columbuszoo.org/Media/columbus-zoo-aquarium-2/my-barn---grahm-s-jones-columbus-zoo-and-aquarium.jpg)
 *barn.jpg*
 
-```./tester.sh 
+```
+
+./tester.sh 
 barn (score = 0.98347)
 church, church building (score = 0.00107)
 boathouse (score = 0.00060)
