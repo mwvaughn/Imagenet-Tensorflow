@@ -4,7 +4,18 @@ _[Abaco](https://github.com/TACC/abaco/) is a web service and distributed system
 
 This repository provides a worked example of deploying a classifier based on Tensorflow as an Abaco container. 
 
-## Essential Steps
+Pre-requisites:
+
+1. Up-to-date Linux or macOS 
+2. Docker 1.12+
+3. curl 7.43+
+4. An account on the public Docker Hub
+5. Familiarity with Bash shell, environment variables, and Python
+6. Access to an Abaco installation
+
+## Outline
+
+Here's the general sequence of steps for deploying a container-as-a-service using Abaco...
 
 1. Design, build, and test your code as a function inside a local Docker container
 2. Push your container to the public Docker Hub
@@ -68,6 +79,9 @@ Next, build your local version of the container
 `./build.sh`
 
 Now, test locally. Since `tester.env` points at a photo of a barn, the results should not shock you.
+
+![This is definitely a barn][https://columbuszoo.org/Media/columbus-zoo-aquarium-2/my-barn---grahm-s-jones-columbus-zoo-and-aquarium.jpg]
+*barn.jpg*
 
 ```./tester.sh 
 barn (score = 0.98347)
