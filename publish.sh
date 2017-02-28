@@ -2,5 +2,5 @@
 
 _VERSION=$(echo -n $(cat VERSION))
 
-docker push mwvaughn/imagenet-tensorflow-reactor:${_VERSION}
-docker push mwvaughn/imagenet-tensorflow-reactor:latest
+docker push ${huborg}/${hubimage}:${_VERSION}
+docker push ${huborg}/${hubimage}:latest

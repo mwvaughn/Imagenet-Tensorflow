@@ -1,26 +1,95 @@
 # Imagenet Tensorflow as a Service Using Abaco
 
-https://github.com/TACC/abaco/
+_[Abaco](https://github.com/TACC/abaco/) is a web service and distributed system that implements the actor model of concurrent computation whereby each actor registered in the system is associated with a Docker image. Actor containers are executed in response to messages posted to their inbox which itself is given by a URI exposed via abaco. In the process of executing the actor container, state, logs and execution statistics are collected._
 
-## Build and push container to public Docker hub
+This repository provides a worked example of deploying a classifier based on Tensorflow as an Abaco container. 
 
-```./build.sh```
+## Essential Steps
 
-## Test locally
+1. Design, build, and test your code as a function inside a local Docker container
+2. Push your container to the public Docker Hub
+3. Register your container as an Abaco container
+4. Execute your container by sending a message
+5. Fetch the logs and results
 
-Edit tester.env to set variables
+### Design, build, and test your code as a function inside a local Docker container
 
-```./tester.sh```
+Each container in Abaco must be able to:
+* Access and retrieve external data (optional, per use case)
+* Accomplish the desired function by running its default ENTRYPOINT (mandatory)
+  * Learn the parameters for container execution from one or more environment variables (mandatory)
+* Write results of the execution to some defined location (optional, per use case)
 
-## Create actor
+We started with an [existing container](https://github.com/atong01/Imagenet-Tensorflow) that someone else designed to do ImageNet classification. You can also start from the ground up and craft your own container.
+
+I set out to implement the following behavior for my Abaco container:
+1. Given a URL pointing to an image file, an optional filename, and a optional number of predictions
+2. Download the URL to a file
+3. Perform ImageNet classification on it
+4. Print the classification to STDOUT to be captured as a log
+
+The original ImagetNet::Tensorflow image was invokable like so:
+
+```docker run -v $PWD:/root/tmp:ro atong01/imagenet-tensorflow python classify_image.py --image_file tmp/$(IMAGE)```
+
+This is close, but we need URL handling and some baby bumpers on the parameterization. Also, we need to be able to read parameters from an environment variable provided by the Abaco platform. The worked implementation of this is found in ```runner.py```
+
+When you read the [runner.py] source, keep an eye out for a few things:
+
+1. We read in parameters from an environment variable called `MSG`
+2. They are in the form of a JSON-like object but aren't quite JSON
+3. In keeping with the functions-as-a-service model, the essential behavior of runner.py is available in `main()` 
+4. The ONLY text printed to STDOUT is the classification on success. For everything else we try to raise an Exception and print error text there. This helps the container engine know whether success has happened.
+5. Like AWS Lambda, we have to manually orchestrate the data ingest and, should we have chosen to, egress. Unlike Lambda or other similar platforms, we are using a full container and so have to manage `requirements.txt` ourselves
+6. We use a very defensive setup (`subprocess.Popen()` without `Shell=false`) to handle forking a classifier process with user-specified parameters
+
+In order to isolate the initial debugging to a local environment, instead of having to get all the platform stuff working, we have implemented a simple [tester.sh] script that creates a MSG variable in a local version of the container. Rather than hard-coding the environment variables into [tester.sh], they are kept in `tester.env`. A major objective here is to avoid URL-escaping issues that will torment even the most seasoned developers. Note that we don't have to escape the URL for the test image by following this approach!
+
+#### The Dockerfile
+
+The objective of this Dockerfile is to ensure that the container has all the capabilities it needs to serve its function. Most of the heavy-lifting Tensorflow stuff is built into the base `tensorflow/tensorflow:latest` image, but we need to:
+
+1. Install Python requests with current PyOpenSSL support
+2. Over-ride the work directory since it's `/notebooks` in the `tensorflow` image by default
+3. Define the `ENTRYPOINT` to point a copy of `runner.py` in the container
+
+## Using This Example Repository
+
+First, create a `config.rc` file, following the example provided in [config.rc.sample]. Then, source it.
+
+`. config.rc`
+
+*You must source config.rc every time you begin working in this repository anew* 
+
+Next, build your local version of the container
+
+`./build.sh`
+
+Now, test locally. Since `tester.env` points at a photo of a barn, the results should not shock you.
+
+```./tester.sh 
+barn (score = 0.98347)
+church, church building (score = 0.00107)
+boathouse (score = 0.00060)
+lumbermill, sawmill (score = 0.00025)
+worm fence, snake fence, snake-rail fence, Virginia fence (score = 0.00016)
+alp (score = 0.00015)
+tester-runtime: 8 seconds
+```
+
+Push the container to Docker Hub.
+
+`./publish.sh`
+
+Create an actor. You will do this by `POST`-ing to the `/actors` endpoint of the Abaco service
 
 ```
-export base=https://dev.tenants.staging.agaveapi.co
-export token=20eab246a12fd55ffb972e4e2d68d9d5
+. config.rc
 curl -sk -X GET -H "Authorization: Bearer $token" $base/actors/v2
 
 # Create a new actor for imagenet-tensorflow
-curl -H "Authorization: Bearer $token" -sk -X POST --data "description=Imagenet%20Classifier%20using%20Tensorflow&stateless=true&image=mwvaughn/imagenet-tensorflow-reactor&name=imagenet-tensorflow" $base/actors/v2?pretty=true
+# Note we are using environment variables for the org/containerset in config.rc to define "image"
+curl -H "Authorization: Bearer $token" -sk -X POST --data "description=Imagenet%20Classifier%20using%20Tensorflow&stateless=true&image=${huborg}/${hubimage}&name=imagenet-tensorflow" $base/actors/v2?pretty=true
 
 {
   "message": "Actor created successfully.",

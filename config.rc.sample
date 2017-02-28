@@ -1,0 +1,5 @@
+export base=https://dev.tenants.staging.agaveapi.co
+export token=20eab246a12f4e2d68d9d5d55ffb972e
+export user=abaco_user
+export huborg=abaco
+export hubimage=imagenet-tensorflow-test
