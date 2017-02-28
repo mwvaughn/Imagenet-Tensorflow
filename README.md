@@ -34,9 +34,9 @@ The original ImagetNet::Tensorflow image was invokable like so:
 
 ```docker run -v $PWD:/root/tmp:ro atong01/imagenet-tensorflow python classify_image.py --image_file tmp/$(IMAGE)```
 
-This is close to the desired behavior, but we need URL handling and some baby bumpers on the parameterization. Also, we need to be able to read parameters from an environment variable provided by the Abaco platform. The worked implementation of this is found in [runner.py]
+This is close to the desired behavior, but we need URL handling and some baby bumpers on the parameterization. Also, we need to be able to read parameters from an environment variable provided by the Abaco platform. The worked implementation of this is found in [runner.py](runner.py)
 
-When you read the [runner.py] source, keep an eye out for a few things:
+When you read the `runner.py` source, keep an eye out for a few things:
 
 1. We read in parameters from an environment variable called `MSG`
 2. They are in the form of a JSON-like object but aren't quite JSON
@@ -45,11 +45,11 @@ When you read the [runner.py] source, keep an eye out for a few things:
 5. Like AWS Lambda, we have to manually orchestrate the data ingest and, should we have chosen to, egress. Unlike Lambda or other similar platforms, we are using a full container and so have to manage `requirements.txt` ourselves
 6. We use a very defensive setup (`subprocess.Popen()` without `Shell=false`) to handle forking a classifier process with user-specified parameters
 
-In order to isolate the initial debugging to a local environment without worrying about getting all the Abaco platform stuff working, we test using a simple [tester.sh] script that populates a `MSG` environment variable in a local version of our container and invokes the default entrypoint manually. Rather than hard-coding the environment into `tester.sh`, it is defined in [tester.env]. One major objective in taking this approach is to avoid URL-escaping issues that will torment even the most seasoned developers. Note that we don't have to escape the URL for the test image by following this approach!
+In order to isolate the initial debugging to a local environment without worrying about getting all the Abaco platform stuff working, we test using a simple [tester.sh](tester.sh) script that populates a `MSG` environment variable in a local version of our container and invokes the default entrypoint manually. Rather than hard-coding the environment into `tester.sh`, it is defined in [tester.env](tester.env). One major objective in taking this approach is to avoid URL-escaping issues that will torment even the most seasoned developers. Note that we don't have to escape the URL for the test image by following this approach!
 
 #### The Dockerfile
 
-The objective of an Abaco-compatible [Dockerfile] is to ensure that the container has all the capabilities it needs to serve its functions. Most of the heavy-lifting Tensorflow stuff is built into the base `tensorflow/tensorflow:latest` image, but we still need to:
+The objective of an Abaco-compatible [Dockerfile](Dockerfile) is to ensure that the container has all the capabilities it needs to serve its functions. Most of the heavy-lifting Tensorflow stuff is built into the base `tensorflow/tensorflow:latest` image, but we still need to:
 
 1. Install Python requests with current PyOpenSSL support
 2. Over-ride the work directory since it's `/notebooks` in the `tensorflow` image by default
@@ -57,7 +57,7 @@ The objective of an Abaco-compatible [Dockerfile] is to ensure that the containe
 
 ## Using This Example Repository
 
-First, create a `config.rc` file, following the example provided in [config.rc.sample]. Then, source it.
+First, create a `config.rc` file, following the example provided in [config.rc.sample](config.rc.sample). Then, source it.
 
 `. config.rc`
 
