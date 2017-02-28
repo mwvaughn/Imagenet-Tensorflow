@@ -43,7 +43,7 @@ Given a URL pointing to an image file, an optional filename, and a optional numb
 
 The original ImagetNet::Tensorflow image was invokable like so:
 
-```docker run -v $PWD:/root/tmp:ro atong01/imagenet-tensorflow python classify_image.py --image_file tmp/$(IMAGE)```
+`docker run -v $PWD:/root/tmp:ro atong01/imagenet-tensorflow python classify_image.py --image_file tmp/$(IMAGE)`
 
 This is close to the desired behavior, but we need URL handling and some baby bumpers on the parameterization. Also, we need to be able to read parameters from an environment variable provided by the Abaco platform. The worked implementation of this is found in [runner.py](runner.py)
 
@@ -52,11 +52,17 @@ When you read the `runner.py` source, keep an eye out for a few things:
 1. We read in parameters from an environment variable called `MSG`
 2. They are in the form of a JSON-like object but aren't quite JSON
 3. In keeping with the functions-as-a-service model, `runner.py`'s essential behavior is available in `main()` 
-4. The ONLY text printed to `STDOUT` is the classification on success. For everything else we try to raise an Exception and print error text there. This helps the container engine know whether success has happened.
-5. Like AWS Lambda, we have to manually orchestrate the data ingest and, should we have chosen to, egress. Unlike Lambda or other similar platforms, we are using a full container and so have to manage `requirements.txt` ourselves
+4. The ONLY text printed to `STDOUT` is the classification on success. For everything else we try to raise an Exception and print error text there. This helps the container engine know whether the execution was successful.
+5. Like AWS Lambda, we must manually orchestrate data ingest and, should we have chosen to, data egress or other downstream storage. Unlike Lambda or other similar platforms, we are using a full container and so have to manage `requirements.txt` ourselves, as well as any OS-level dependencies
 6. We use a very defensive setup (`subprocess.Popen()` without `Shell=false`) to handle forking a classifier process with user-specified parameters
 
-In order to isolate the initial debugging to a local environment without worrying about getting all the Abaco platform stuff working, we test using a simple [tester.sh](tester.sh) script that populates a `MSG` environment variable in a local version of our container and invokes the default entrypoint manually. Rather than hard-coding the environment into `tester.sh`, it is defined in [tester.env](tester.env). One major objective in taking this approach is to avoid URL-escaping issues that will torment even the most seasoned developers. Note that we don't have to escape the URL for the test image by following this approach!
+In order to isolate the initial debugging to a local environment without worrying about getting all the Abaco platform stuff working, we test using a simple [tester.sh](tester.sh) script that populates a `MSG` environment variable in a local version of our container and invokes the default entrypoint manually. Rather than hard-coding the environment into `tester.sh`, it is defined in [tester.env](tester.env). 
+
+```shell
+MSG={'predictions': '6', 'data_name': 'barn.jpg', 'data_url': 'https://columbuszoo.org/Media/columbus-zoo-aquarium-2/my-barn---grahm-s-jones-columbus-zoo-and-aquarium.jpg'}
+```
+
+One major objective in taking this approach is to avoid URL-escaping issues that will torment even the most seasoned developers. Note that we don't have to escape the URL for the test image by following this approach!
 
 #### The Dockerfile
 
@@ -66,7 +72,9 @@ The objective of an Abaco-compatible [Dockerfile](Dockerfile) is to ensure that 
 2. Over-ride the work directory since it's `/notebooks` in the `tensorflow` image by default
 3. Define the `ENTRYPOINT` to point a copy of `runner.py` in the container
 
-## Using This Example Repository
+The `Dockerfile` contains steps to achieve each of these tasks, building atop the tensorflow base image.
+
+## Using This Repository
 
 First, create a `config.rc` file, following the example provided in [config.rc.sample](config.rc.sample). Then, source it.
 
@@ -83,8 +91,8 @@ Now, test locally. Since `tester.env` points at a photo of a barn, the results s
 ![This is definitely a barn](https://columbuszoo.org/Media/columbus-zoo-aquarium-2/my-barn---grahm-s-jones-columbus-zoo-and-aquarium.jpg)
 *barn.jpg*
 
-```
 
+```shell
 ./tester.sh 
 barn (score = 0.98347)
 church, church building (score = 0.00107)
@@ -101,7 +109,7 @@ Push the container to Docker Hub.
 
 Create an actor. You will do this by `POST`-ing to the `/actors` endpoint of the Abaco service
 
-```
+```shell
 . config.rc
 curl -sk -X GET -H "Authorization: Bearer $token" $base/actors/v2
 
@@ -246,38 +254,3 @@ curl -sk -X GET -H "Authorization: Bearer $token" $base/actors/v2/$actor/executi
 }
 
 ```
-
-=======
-#Imagenet Tensorflow
-
-Single command imagenet classifier run through docker.
-
-Use the following command for the default image:
-```
-docker run atong01/imagenet-tensorflow python classify_image.py
-```
-or
-```
-sh run.sh 
-```
-
-expected output
-```
-running on default
------------------------------------------------------------------------------
-giant panda, panda, panda bear, coon bear, Ailuropoda melanoleuca (score = 0.89233)
-indri, indris, Indri indri, Indri brevicaudatus (score = 0.00859)
-lesser panda, red panda, panda, bear cat, cat bear, Ailurus fulgens (score = 0.00264)
-custard apple (score = 0.00141)
-earthstar (score = 0.00107)
-```
-
-Or, to use your own image file:
-```
-docker run -v $PWD:/root/tmp:ro atong01/imagenet-tensorflow python classify_image.py --image_file tmp/$(IMAGE)
-```
-or
-```
-sh run.sh $(IMAGE)
-```
-Where $(IMAGE) is the imagename, note that your $PWD must be a parent directory of your imagefile.
