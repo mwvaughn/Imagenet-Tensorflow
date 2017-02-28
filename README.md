@@ -80,7 +80,7 @@ Next, build your local version of the container
 
 Now, test locally. Since `tester.env` points at a photo of a barn, the results should not shock you.
 
-![This is definitely a barn][https://columbuszoo.org/Media/columbus-zoo-aquarium-2/my-barn---grahm-s-jones-columbus-zoo-and-aquarium.jpg]
+![This is definitely a barn](https://columbuszoo.org/Media/columbus-zoo-aquarium-2/my-barn---grahm-s-jones-columbus-zoo-and-aquarium.jpg)
 *barn.jpg*
 
 ```./tester.sh 
